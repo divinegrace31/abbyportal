@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>School Event and Announcement Portal</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+<div class="container text-center mt-5">
+
+    <h1 class="mb-4">School Event and Announcement Portal</h1>
+
+    <button class="btn btn-primary me-2"
+        data-bs-toggle="modal"
+        data-bs-target="#loginModal">
+        Login
+    </button>
+
+    <button class="btn btn-success"
+        data-bs-toggle="modal"
+        data-bs-target="#registerModal">
+        Register
+    </button>
+
+</div>
+<!-- LOGIN MODAL -->
+<div class="modal fade" id="loginModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title">Login to Portal</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body">
+
+                <div class="mb-3">
+                    <label>Email / Username</label>
+                    <input type="text" id="loginUser" class="form-control">
+                </div>
+
+                <div class="mb-3">
+                    <label>Password</label>
+                    <input type="password" id="loginPass" class="form-control">
+                </div>
+
+                <div class="mb-3">
+                    <label>Login As</label>
+                    <select id="loginRole" class="form-select">
+                        <option value="student">Student</option>
+                        <option value="admin">Admin</option>
+                    </select>
+                </div>
+
+                <div id="loginError" class="text-danger text-center"></div>
+
+            </div>
+
+            <div class="modal-footer">
+                <button class="btn btn-secondary" data-bs-dismiss="modal">
+                    Cancel
+                </button>
+
+                <button class="btn btn-primary" onclick="loginUser()">
+                    Login
+                </button>
+            </div>
+
+            <div class="text-center pb-3">
+                <small>
+                    Don't have an account?
+                    <a href="#" data-bs-toggle="modal" data-bs-target="#registerModal">
+                        Register
+                    </a>
+                </small>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- REGISTER MODAL -->
+<div class="modal fade" id="registerModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title">Create Account</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body">
+
+                <div class="mb-3">
+                    <label>Full Name</label>
+                    <input type="text" id="regName" class="form-control">
+                </div>
+
+                <div class="mb-3">
+                    <label>Email</label>
+                    <input type="email" id="regEmail" class="form-control">
+                </div>
+
+                <div class="mb-3">
+                    <label>Password</label>
+                    <input type="password" id="regPass" class="form-control">
+                </div>
+
+                <div class="mb-3">
+                    <label>Register As</label>
+                    <select id="regRole" class="form-select">
+                        <option value="student">Student</option>
+                        <option value="admin">Admin</option>
+                    </select>
+                </div>
+
+                <div id="registerMessage" class="text-center"></div>
+
+            </div>
+
+            <div class="modal-footer">
+                <button class="btn btn-success" onclick="registerUser()">
+                    Register
+                </button>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- BOOTSTRAP -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+
+// REGISTER FUNCTION
+function registerUser() {
+
+    const name = document.getElementById("regName").value.trim();
+    const email = document.getElementById("regEmail").value.trim();
+    const password = document.getElementById("regPass").value.trim();
+    const role = document.getElementById("regRole").value;
+
+    const message = document.getElementById("registerMessage");
+
+    message.innerHTML = "";
+
+    // VALIDATION
+    if(name === "" || email === "" || password === "") {
+        message.innerHTML =
+        "<span class='text-danger'>Please fill all fields!</span>";
+        return;
+    }
+
+    // GET USERS
+    let users = JSON.parse(localStorage.getItem("portalUsers")) || [];
+
+    // CHECK EXISTING EMAIL
+    const existingUser = users.find(user =>
+        user.email.toLowerCase() === email.toLowerCase()
+    );
+
+    if(existingUser) {
+        message.innerHTML =
+        "<span class='text-danger'>Email already registered!</span>";
+        return;
+    }
+
+    // SAVE USER
+    users.push({
+        name: name,
+        email: email,
+        password: password,
+        role: role
+    });
+
+    localStorage.setItem("portalUsers", JSON.stringify(users));
+
+    // SAVE SESSION
+    localStorage.setItem("portalName", name);
+    localStorage.setItem("portalUser", email);
+    localStorage.setItem("portalRole", role);
+
+    // SUCCESS MESSAGE
+    message.innerHTML =
+    "<span class='text-success'>Registration Successful!</span>";
+
+    // REDIRECT
+    setTimeout(() => {
+
+        const modal =
+        bootstrap.Modal.getInstance(
+            document.getElementById('registerModal')
+        );
+
+        if(modal) modal.hide();
+
+        // ADMIN
+        if(role === "admin") {
+            window.location.href = "admin-dashboard.html";
+        }
+
+        // STUDENT
+        else {
+            window.location.href = "student-dashboard.html";
+        }
+
+    }, 1000);
+}
+
+
+
+// LOGIN FUNCTION
+function loginUser() {
+
+    const email = document.getElementById("loginUser").value.trim();
+    const password = document.getElementById("loginPass").value.trim();
+    const role = document.getElementById("loginRole").value;
+
+    const errorDiv = document.getElementById("loginError");
+
+    errorDiv.innerHTML = "";
+
+    // VALIDATION
+    if(email === "" || password === "") {
+
+        errorDiv.innerHTML =
+        "<span class='text-danger'>Please fill all fields!</span>";
+
+        return;
+    }
+
+    // GET USERS
+    let users = JSON.parse(localStorage.getItem("portalUsers")) || [];
+
+    // FIND USER
+    const user = users.find(u =>
+
+        u.email.toLowerCase() === email.toLowerCase() &&
+        u.password === password &&
+        u.role.toLowerCase() === role.toLowerCase()
+
+    );
+
+    console.log(users);
+    console.log(user);
+
+    // INVALID LOGIN
+    if(!user) {
+
+        errorDiv.innerHTML =
+        "<span class='text-danger'>Invalid credentials!</span>";
+
+        return;
+    }
+
+    // SAVE SESSION
+    localStorage.setItem("portalName", user.name);
+    localStorage.setItem("portalUser", user.email);
+    localStorage.setItem("portalRole", user.role);
+
+    // SUCCESS
+    alert("Login Successful!");
+
+    // CLOSE MODAL
+    const modal =
+    bootstrap.Modal.getInstance(
+        document.getElementById('loginModal')
+    );
+
+    if(modal) modal.hide();
+
+    // REDIRECT
+    if(user.role === "admin") {
+
+        window.location.href = "admin-dashboard.html";
+
+    } else {
+
+        window.location.href = "student-dashboard.html";
+    }
+}
+
+
+
+// AUTO OPEN LOGIN MODAL
+window.onload = function () {
+
+    const loginModal =
+    new bootstrap.Modal(
+        document.getElementById('loginModal')
+    );
+
+    loginModal.show();
+}
+
+</script>
